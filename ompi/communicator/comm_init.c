@@ -246,6 +246,11 @@ int ompi_comm_init_mpi3 (void)
        because MPI_COMM_WORLD has some predefined attributes. */
     ompi_attr_hash_init(&ompi_mpi_comm_world.comm.c_keyhash);
 
+
+    ompi_mpi_comm_world.comm.FMU_HASH = OBJ_NEW(opal_hash_table_t);
+    opal_hash_table_init(ompi_mpi_comm_world.comm.FMU_HASH, 2048);
+    
+
     /* Check for the binding policy used. We are only interested in
        whether mapby-node has been set right now (could be extended later)
        and only on MPI_COMM_WORLD, since for all other sub-communicators

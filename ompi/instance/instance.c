@@ -128,6 +128,7 @@ static int ompi_mpi_instance_finalize_common (void);
 /*
  * Hash tables for MPI_Type_create_f90* functions
  */
+//opal_hash_table_t FMU_HASH = {{0}};
 opal_hash_table_t ompi_mpi_f90_integer_hashtable = {{0}};
 opal_hash_table_t ompi_mpi_f90_real_hashtable = {{0}};
 opal_hash_table_t ompi_mpi_f90_complex_hashtable = {{0}};
@@ -796,6 +797,8 @@ static int ompi_mpi_instance_init_common (int argc, char **argv)
     /* Initialize the arrays used to store the F90 types returned by the
      *  MPI_Type_create_f90_XXX functions.
      */
+    //OBJ_CONSTRUCT( &FMU_HASH, opal_hash_table_t);
+    //opal_hash_table_init(&FMU_HASH, 32 /* why not? */);
     OBJ_CONSTRUCT( &ompi_mpi_f90_integer_hashtable, opal_hash_table_t);
     opal_hash_table_init(&ompi_mpi_f90_integer_hashtable, 16 /* why not? */);
 
@@ -880,6 +883,9 @@ static int ompi_mpi_instance_finalize_common (void)
     OPAL_LIST_DESTRUCT(&ompi_registered_datareps);
 
     /* Remove all F90 types from the hash tables */
+    //OPAL_HASH_TABLE_FOREACH(key, uint32, datatype, &FMU_HASH)
+        //OBJ_RELEASE(datatype);
+    //OBJ_DESTRUCT(&FMU_HASH);
     OPAL_HASH_TABLE_FOREACH(key, uint32, datatype, &ompi_mpi_f90_integer_hashtable)
         OBJ_RELEASE(datatype);
     OBJ_DESTRUCT(&ompi_mpi_f90_integer_hashtable);

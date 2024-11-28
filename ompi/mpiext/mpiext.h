@@ -14,6 +14,7 @@ extern "C" {
 
 #include "ompi_config.h"
 
+
 OMPI_DECLSPEC int ompi_mpiext_init(void);
 
 typedef int (*ompi_mpiext_init_fn_t)(void);

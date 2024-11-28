@@ -314,6 +314,8 @@ struct ompi_communicator_t {
     /* Attributes */
     struct opal_hash_table_t       *c_keyhash;
 
+    struct opal_hash_table_t       *FMU_HASH;
+
     /* Standard information about the selected topology module (or NULL
        if this is not a cart, graph or dist graph communicator) */
     struct mca_topo_base_module_t* c_topo;

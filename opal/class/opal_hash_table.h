@@ -35,7 +35,7 @@
 #ifndef OPAL_HASH_TABLE_H
 #define OPAL_HASH_TABLE_H
 
-#include "opal_config.h"
+#include "opal/include/opal_config.h"
 
 #include "opal/class/opal_list.h"
 #include "opal/util/proc.h"

@@ -1,0 +1,3 @@
+SUBDIRS = c
+
+EXTRA_DIST = README.md

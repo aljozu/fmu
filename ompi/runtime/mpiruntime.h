@@ -65,6 +65,8 @@ OMPI_DECLSPEC extern int ompi_mpi_thread_provided;
 /** Identifier of the main thread */
 OMPI_DECLSPEC extern struct opal_thread_t *ompi_mpi_main_thread;
 
+
+//OMPI_DECLSPEC extern opal_hash_table_t FMU_HASH;
 /*
  * State of the MPI runtime.
  *

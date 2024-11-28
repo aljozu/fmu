@@ -101,6 +101,7 @@
 #include "ompi/mpiext/mpiext.h"
 #include "ompi/mca/hook/base/base.h"
 #include "ompi/util/timings.h"
+#include "opal/class/opal_hash_table.h"
 
 /* newer versions of gcc have poisoned this deprecated feature */
 #ifdef HAVE___MALLOC_INITIALIZE_HOOK
@@ -132,6 +133,7 @@ int ompi_mpi_thread_requested = MPI_THREAD_SINGLE;
 int ompi_mpi_thread_provided = MPI_THREAD_SINGLE;
 
 opal_thread_t *ompi_mpi_main_thread = NULL;
+opal_hash_table_t FMU_HASH = {{0}};
 
 /*
  * These variables are for the MPI F08 bindings (F08 must bind Fortran
