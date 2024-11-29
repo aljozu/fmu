@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "mpi-ext.h"
 
-#define SIZE 8 /* Size of matrices */
+#define SIZE 24 /* Size of matrices */
 
 int A[SIZE][SIZE], B[SIZE][SIZE], C[SIZE][SIZE];
 
@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
     int myrank, P, from, to, i, j, k;
     int tag_A1 = 11, tag_A2 = 12, tag_B = 2, tag_C = 3, tag_r1 = 21, tag_r2=22; /* FMU tags for A, B, and C */
     MPI_Status status;
+    double start_time, end_time;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank); /* Get rank */
@@ -61,12 +62,12 @@ int main(int argc, char *argv[]) {
         fill_matrix(A);
         fill_matrix(B);
     }
+    start_time = MPI_Wtime();
     /* Write the first 4 rows of matrix A to the last node */
     MPI_Fmu_Write(A, SIZE * rows_per_process, 0, MPI_INT, 0, tag_A1, MPI_COMM_WORLD);
     
     /* Write the remaining rows (rows 4 to 7) of matrix A to the last node */
     MPI_Fmu_Write(*(A + rows_per_process), SIZE * rows_per_process, 0, MPI_INT, 0, tag_A2, MPI_COMM_WORLD);
-    //MPI_Barrier(MPI_COMM_WORLD);
     MPI_Fmu_Write(B, SIZE * SIZE, 0, MPI_INT, 0, tag_B, MPI_COMM_WORLD);
 
     /* Cada proceso lee su parte de la matriz A desde el nodo final */
@@ -90,6 +91,28 @@ int main(int argc, char *argv[]) {
     }
     }
 
+    MPI_Fmu_Write(C, SIZE * rows_per_process, 0, MPI_INT, 0, tag_r1, MPI_COMM_WORLD);
+    MPI_Fmu_Write(C, SIZE * rows_per_process, 1, MPI_INT, 0, tag_r2, MPI_COMM_WORLD);
+
+    MPI_Fmu_Read(C, rows_per_process * SIZE, 0, MPI_INT, 0, tag_r1, MPI_COMM_WORLD);
+    MPI_Fmu_Read(*(C + rows_per_process), rows_per_process * SIZE, 0, MPI_INT, 0, tag_r2, MPI_COMM_WORLD);
+    end_time = MPI_Wtime();
+    if (myrank == 0) {
+        printf("Total program execution time: %f seconds\n", end_time - start_time);
+    }
+    // if (myrank==0) {
+    //     printf("\n\n");
+    //     print_matrix(myrank, A);
+    //     printf("\n\n\t       * \n");
+    //     print_matrix(myrank, B);
+    //     printf("\n\n\t       = \n");
+    //     print_matrix(myrank, C);
+    //     printf("\n\n");
+    // }
+    MPI_Finalize();
+    return 0;
+}
+
     // MPI_Barrier(MPI_COMM_WORLD); // Synchronize all processes
 
     // for (int rank = 0; rank < P; rank++) {
@@ -99,22 +122,3 @@ int main(int argc, char *argv[]) {
     //     }
     //     MPI_Barrier(MPI_COMM_WORLD); // Synchronize before moving to the next rank
     // }
-
-    MPI_Fmu_Write(C, SIZE * rows_per_process, 0, MPI_INT, 0, tag_r1, MPI_COMM_WORLD);
-    MPI_Fmu_Write(C, SIZE * rows_per_process, 1, MPI_INT, 0, tag_r2, MPI_COMM_WORLD);
-
-    MPI_Fmu_Read(C, rows_per_process * SIZE, 0, MPI_INT, 0, tag_r1, MPI_COMM_WORLD);
-    MPI_Fmu_Read(*(C + rows_per_process), rows_per_process * SIZE, 0, MPI_INT, 0, tag_r2, MPI_COMM_WORLD);
-
-    if (myrank==0) {
-        printf("\n\n");
-        print_matrix(myrank, A);
-        printf("\n\n\t       * \n");
-        print_matrix(myrank, B);
-        printf("\n\n\t       = \n");
-        print_matrix(myrank, C);
-        printf("\n\n");
-    }
-    MPI_Finalize();
-    return 0;
-}
