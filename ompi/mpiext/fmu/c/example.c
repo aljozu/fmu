@@ -14,11 +14,12 @@ int main(int argc, char *argv[]) {
         data = 42;
     }
     // Call the custom MPI function
-    MPI_Fmu_Write(&data, 1, MPI_INT, tag, fmu_tag, MPI_COMM_WORLD);
+    MPI_Fmu_Write(&data, 1, 0, MPI_INT, tag, fmu_tag, MPI_COMM_WORLD);
 
     //MPI_Barrier(MPI_COMM_WORLD);
     
     MPI_Fmu_Read(&data, 1, 1, MPI_INT, tag, fmu_tag, MPI_COMM_WORLD);
+    MPI_Fmu_Read(&data, 1, 2, MPI_INT, tag, fmu_tag, MPI_COMM_WORLD);
     if (rank == 0) {
         printf("Process %d sent data %d to the last process.\n", rank, data);
     } else if (rank == size - 1) {

@@ -22,24 +22,14 @@ int MPI_Fmu_Alltoall(void *sendbuf, int sendcount, MPI_Datatype sendtype,
     MPI_Type_size(sendtype, &sendtype_size);
     MPI_Type_size(recvtype, &recvtype_size);
 
-    // Step 1: Write Phase
-    for (int dest = 0; dest < world_size; dest++) {
-        if (dest == world_rank) continue; // Skip self
-
-        // Use a unique tag for the communication
-        int tag = dest;      // Identifies the receiver
-        int fmu_tag = world_rank; // Identifies the sender (optional for debugging/organization)
-
-        // Pointer to the data chunk for the current destination
-        void *data = (char *)sendbuf + dest * sendcount * sendtype_size;
-        printf("dest \n");
+    printf("dest \n");
         // Write the data to the FMU node
-        MPI_Fmu_Write(data, sendcount, sendtype, tag, fmu_tag, comm);
-        printf("asd \n");
-    }
+    MPI_Fmu_Write(sendbuf, sendcount, world_rank, sendtype, world_rank, world_rank, comm);
+
+
     MPI_Barrier(comm);
     // Step 2: Read Phase
-    for (int src = 0; src < world_size; src++) {
+    for (int src = 0; src < world_size-1; src++) {
         if (src == world_rank) {
             // Self data copy directly
             void *self_data = (char *)sendbuf + src * sendcount * sendtype_size;

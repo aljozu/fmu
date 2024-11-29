@@ -19,14 +19,13 @@
 static const char FUNC_NAME[] = "MPI_Fmu_Write";
 
 
-int MPI_Fmu_Write(void *data, int count, MPI_Datatype datatype, int tag, int fmu_tag, MPI_Comm comm) {
+int MPI_Fmu_Write(void *data, int count, int src, MPI_Datatype datatype, int tag, int fmu_tag, MPI_Comm comm) {
     int rank, size;
     MPI_Status status;
 
     // Get the rank and size of the communicator
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &size);
-    printf("fmu_write\n");
     if (size < 2) {
         if (rank == 0) {
             fprintf(stderr, "MPI_Fmu_SendToLastAndStore: Requires at least 2 processes.\n");
@@ -35,26 +34,21 @@ int MPI_Fmu_Write(void *data, int count, MPI_Datatype datatype, int tag, int fmu
     }
     char filename[256];
     int filename_len;
-    int received_tag;
-    if (rank == 0) {
+    if (rank == src) {
         // Send data to the last process
-        printf("send\n");
         MPI_Send(data, count, datatype, size - 1, tag, comm);
     } else if (rank == size - 1) {
-        printf("write\n");
         // Buffer to receive data
         void *recv_data = malloc(count * sizeof(datatype));
         if (!recv_data) {
             fprintf(stderr, "Error allocating memory.\n");
             return MPI_ERR_NO_MEM;
         }
-        printf("Before recv\n");
         // Receive data from process 0
-        MPI_Recv(recv_data, count, datatype, 0, tag, comm, &status);
+        MPI_Recv(recv_data, count, datatype, src, tag, comm, &status);
         memcpy(data, recv_data, count * sizeof(datatype));
         // Generate the filename dynamically
         snprintf(filename, sizeof(filename), "fmudata_%d.txt", tag);
-         printf("after rcv recv\n");
         // Save the data to the file
         FILE *file = fopen(filename, "w");
         if (!file) {
@@ -62,10 +56,8 @@ int MPI_Fmu_Write(void *data, int count, MPI_Datatype datatype, int tag, int fmu
             free(recv_data);
             return MPI_ERR_OTHER;
         }
-        printf("Before writing\n");
         fwrite(recv_data, sizeof(datatype), count, file);
         fclose(file);
-        printf("After writing\n");
         opal_hash_table_set_value_ptr(comm->FMU_HASH, (void *)&fmu_tag, sizeof(fmu_tag), strdup(filename));
         free(recv_data);
         filename_len = strlen(filename) + 1; // Include null terminator
