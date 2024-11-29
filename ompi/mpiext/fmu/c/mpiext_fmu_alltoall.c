@@ -24,7 +24,7 @@ int MPI_Fmu_Alltoall(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 
     printf("dest \n");
         // Write the data to the FMU node
-    MPI_Fmu_Write(sendbuf, sendcount, world_rank, sendtype, world_rank, world_rank, comm);
+    MPI_Fmu_Write(sendbuf, sendcount, world_rank, sendtype, 0, world_rank, comm);
 
 
     MPI_Barrier(comm);

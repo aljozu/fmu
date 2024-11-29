@@ -48,8 +48,9 @@ int MPI_Fmu_Write(void *data, int count, int src, MPI_Datatype datatype, int tag
         MPI_Recv(recv_data, count, datatype, src, tag, comm, &status);
         memcpy(data, recv_data, count * sizeof(datatype));
         // Generate the filename dynamically
-        snprintf(filename, sizeof(filename), "fmudata_%d.txt", tag);
+        snprintf(filename, sizeof(filename), "fmudata_%d.txt", fmu_tag);
         // Save the data to the file
+        //printf("Filename %s and rank %d \n", filename, rank);
         FILE *file = fopen(filename, "w");
         if (!file) {
             fprintf(stderr, "Error opening file: %s\n", filename);
