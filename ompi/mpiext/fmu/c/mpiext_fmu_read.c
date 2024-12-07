@@ -39,7 +39,7 @@ int MPI_Fmu_Read(void *data, int count, int dest, MPI_Datatype datatype, int tag
             return MPI_ERR_OTHER;
         }
 
-        printf("Rank %d: Filename retrieved = %s\n", rank, filename);
+        //printf("Rank %d: Filename retrieved = %s\n", rank, filename);
 
         // Open file
         FILE *file = fopen(filename, "rb");
@@ -73,7 +73,7 @@ int MPI_Fmu_Read(void *data, int count, int dest, MPI_Datatype datatype, int tag
 
     } else if (rank == dest) {
         // Destination Rank
-        printf("Rank %d: Preparing to receive data from FMU node.\n", rank);
+        //printf("Rank %d: Preparing to receive data from FMU node.\n", rank);
 
         // Allocate buffer for received data
         void *recv_data = malloc(count * datatype_size);
@@ -89,7 +89,7 @@ int MPI_Fmu_Read(void *data, int count, int dest, MPI_Datatype datatype, int tag
         memcpy(data, recv_data, count * datatype_size);
         free(recv_data);
 
-        printf("Rank %d: Data successfully received and stored.\n", rank);
+        //printf("Rank %d: Data successfully received and stored.\n", rank);
     }
 
     return MPI_SUCCESS;

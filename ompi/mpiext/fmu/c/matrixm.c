@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "mpi-ext.h"
 
-#define SIZE 24 /* Size of matrices */
+#define SIZE 1024 /* Size of matrices */
 
 int A[SIZE][SIZE], B[SIZE][SIZE], C[SIZE][SIZE];
 
