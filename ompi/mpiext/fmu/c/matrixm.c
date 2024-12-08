@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "mpi-ext.h"
 
-#define SIZE 1024 /* Size of matrices */
+#define SIZE 8 /* Size of matrices */
 
 int A[SIZE][SIZE], B[SIZE][SIZE], C[SIZE][SIZE];
 
@@ -39,7 +39,7 @@ void print_local_matrix(int rank, int local_matrix[SIZE / 2][SIZE]) {
 
 int main(int argc, char *argv[]) {
     int myrank, P, from, to, i, j, k;
-    int tag_A1 = 11, tag_A2 = 12, tag_B = 2, tag_C = 3, tag_r1 = 21, tag_r2=22; /* FMU tags for A, B, and C */
+    int tag_A1 = 11, tag_A2 = 12, tag_B = 75, tag_C = 3, tag_r1 = 21, tag_r2=22; /* FMU tags for A, B, and C */
     MPI_Status status;
     double start_time, end_time;
 
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
         MPI_Finalize();
         exit(-1);
     }
-    int rows_per_process = SIZE / 2; /* Dividir la matriz en 2 partes iguales */
+    int rows_per_process = SIZE / avp; /* Dividir la matriz en 2 partes iguales */
     from = myrank * SIZE / avp;
     to = (myrank + 1) * SIZE / avp;
 
@@ -63,24 +63,30 @@ int main(int argc, char *argv[]) {
         fill_matrix(B);
     }
     start_time = MPI_Wtime();
-    /* Write the first 4 rows of matrix A to the last node */
-    MPI_Fmu_Write(A, SIZE * rows_per_process, 0, MPI_INT, 0, tag_A1, MPI_COMM_WORLD);
+    /* Write the first avp rows of matrix A to the last node */
+    //MPI_Fmu_Write(A, SIZE * rows_per_process, 0, MPI_INT, 0, tag_A1, MPI_COMM_WORLD);
     
     /* Write the remaining rows (rows 4 to 7) of matrix A to the last node */
-    MPI_Fmu_Write(*(A + rows_per_process), SIZE * rows_per_process, 0, MPI_INT, 0, tag_A2, MPI_COMM_WORLD);
+
+    for(int j = 0, t = 11; j < SIZE; j+=rows_per_process,t++){
+        MPI_Fmu_Write(*(A + j), SIZE * rows_per_process, 0, MPI_INT, 0, t, MPI_COMM_WORLD);
+    }
+
     MPI_Fmu_Write(B, SIZE * SIZE, 0, MPI_INT, 0, tag_B, MPI_COMM_WORLD);
 
     /* Cada proceso lee su parte de la matriz A desde el nodo final */
     int local_A[SIZE][SIZE]; /* Parte local de la matriz A */
 
+    for(int j = 1; j < avp; j++) {
+        MPI_Fmu_Read(B, SIZE * SIZE, j, MPI_INT, 0, tag_B, MPI_COMM_WORLD);
+    }
 
-    MPI_Fmu_Read(B, SIZE * SIZE, 1, MPI_INT, 0, tag_B, MPI_COMM_WORLD);
+    for (int j = 0, t = 11; j < avp; j++,t++){
+        MPI_Fmu_Read(local_A, rows_per_process * SIZE, j, MPI_INT, 0, t, MPI_COMM_WORLD);
+    }
+    
 
-    MPI_Fmu_Read(local_A, rows_per_process * SIZE, 0, MPI_INT, 0, tag_A1, MPI_COMM_WORLD);
-    /* Print local_A for each process */
-
-
-    MPI_Fmu_Read(local_A, rows_per_process * SIZE, 1, MPI_INT, 0, tag_A2, MPI_COMM_WORLD);
+    //MPI_Fmu_Read(local_A, rows_per_process * SIZE, 1, MPI_INT, 0, tag_A2, MPI_COMM_WORLD);
         
     if(myrank<=1){
     for (i=0; i<rows_per_process; i++) 
@@ -89,13 +95,19 @@ int main(int argc, char *argv[]) {
             for (k=0; k<SIZE; k++)
                 C[i][j] += local_A[i][k]*B[k][j];
     }
+    }   
+
+    for(int j = 0, t = 21; j < avp; j++, t++){
+        MPI_Fmu_Write(C, SIZE * rows_per_process, j, MPI_INT, 0, t, MPI_COMM_WORLD);
     }
 
-    MPI_Fmu_Write(C, SIZE * rows_per_process, 0, MPI_INT, 0, tag_r1, MPI_COMM_WORLD);
-    MPI_Fmu_Write(C, SIZE * rows_per_process, 1, MPI_INT, 0, tag_r2, MPI_COMM_WORLD);
-
-    MPI_Fmu_Read(C, rows_per_process * SIZE, 0, MPI_INT, 0, tag_r1, MPI_COMM_WORLD);
-    MPI_Fmu_Read(*(C + rows_per_process), rows_per_process * SIZE, 0, MPI_INT, 0, tag_r2, MPI_COMM_WORLD);
+    
+    //MPI_Fmu_Write(C, SIZE * rows_per_process, 1, MPI_INT, 0, tag_r2, MPI_COMM_WORLD);
+    for(int j = 0, t = 21; j < SIZE; j+=rows_per_process,t++){
+        MPI_Fmu_Read(*(C + j), rows_per_process * SIZE, 0, MPI_INT, 0, t, MPI_COMM_WORLD);
+    }
+    //MPI_Fmu_Read(C, rows_per_process * SIZE, 0, MPI_INT, 0, tag_r1, MPI_COMM_WORLD);
+    
     end_time = MPI_Wtime();
     if (myrank == 0) {
         printf("Total program execution time: %f seconds\n", end_time - start_time);
